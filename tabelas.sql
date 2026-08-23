@@ -42,5 +42,9 @@ CREATE TABLE livros (
 CREATE TABLE vendas (
     id_venda INTEGER PRIMARY KEY AUTOINCREMENT, 
     id_livro INT,
+  	periodo_inicio DATE NOT NULL, 
+  	periodo_final DATE NOT NULL, 
+  	posicao_ranking INTEGER, 
+  	quantidade_de_vendas INTEGER NOT NULL, 
     FOREIGN KEY (id_livro) REFERENCES livros(id_livro) 
 );
