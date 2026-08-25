@@ -1,67 +1,28 @@
---LIVROS
--- Verificando nossos dados como um todo
-SELECT *
-FROM livros;
+-- 1. Quais autores aparecem com maior frequência nos rankings?
+--Quantos livros publicados esse autor tem: 
+SELECT a.nome_autor, COUNT(DISTINCT l.id_livro) AS quantidade_livros
+FROM livros l
+JOIN autores a ON l.id_autor = a.id_autor
+GROUP BY a.id_autor, a.nome_autor
+ORDER BY quantidade_livros DESC; 
 
-SELECT nome_livro
-FROM livros;
+--------------
 
---AUTORES
--- Verificando nossos autores 
-SELECT nome_autor
-FROM autores; 
+--Quantas vezes esse autor aparece nos rankins durante os 7 períodos: 
+SELECT  a.nome_autor, COUNT(*) AS vezes_no_ranking
+FROM vendas v
+JOIN livros l ON v.id_livro = l.id_livro
+JOIN autores a ON l.id_autor = a.id_autor
+GROUP BY a.id_autor, a.nome_autor
+ORDER BY vezes_no_ranking DESC; 
 
---EDITORAS 
-SELECT nome_editora
-FROM editoras; 
+------
 
---CATEGORIAS 
-SELECT nome_categoria
-FROM categorias; 
-
-
---------
---ORDENANDO 
-SELECT nome_livro
-FROM livros
-ORDER BY nome_livro DESC; 
-
-----------
--- QUAL AUTOR POSSUI MAIS LIVROS CADASTRADOS? E QUANTOS OS OUTROS TEM? 
-SELECT nome_autor, COUNT(*) AS total_livros
-FROM livros
-JOIN autores
-ON livros.id_autor = autores.id_autor
-GROUP BY nome_autor
-ORDER BY total_livros DESC;
-----------------------
-SELECT nome_autor, nome_livro
-FROM livros
-JOIN autores
-ON livros.id_autor = autores.id_autor
-WHERE nome_autor = 'Ali Hazelwood';
-------------
-SELECT nome_categoria, nome_livro
-FROM livros
-JOIN categorias
-on livros.id_categoria = categorias.id_categoria
-WHERE id_categoria = 1; 
----------------
-SELECT COUNT(DISTINCT nome_autor) 
-FROM livros 
-JOIN autores 
-ON livros.id_autor = autores.id_autor; 
-------------------------
-SELECT DISTINCT nome_autor
-FROM livros 
-JOIN autores 
-ON livros.id_autor = autores.id_autor; 
-------------------
-SELECT * FROM livros 
-WHERE id_autor=1;
-
-
-
-
-
+--Total de vendas duranteos 7 períodos: 
+SELECT a.nome_autor, SUM(v.quantidade_de_vendas) AS total_vendas
+FROM vendas v
+JOIN livros l ON v.id_livro = l.id_livro
+JOIN autores a ON l.id_autor = a.id_autor
+GROUP BY a.id_autor, a.nome_autor
+ORDER BY total_vendas DESC;
 
