@@ -101,8 +101,11 @@ JOIN autores on livros.id_autor = autores.id_autor;
 
 ----Qual autor possui o maior total de vendas, 
 -- considerando todos os livros e todos os períodos disponíveis?
-SELECT nome_autor, nome_livro , SUM(quantidade_de_vendas) as total_vendas
-FROM livros
-JOIN vendas 
+SELECT nome_autor, SUM(quantidade_de_vendas) as total_vendas_autor 
+from livros
+JOIN vendas on vendas.id_livro = livros.id_livro
+JOIN autores ON livros.id_autor = autores.id_autor
 GROUP by nome_autor
-ORDER BY total_vendas DESC; 
+ORDER by total_vendas_autor DESC;
+
+
