@@ -109,3 +109,49 @@ GROUP by nome_autor
 ORDER by total_vendas_autor DESC;
 
 
+--- Qual editora possui o maior total de vendas, 
+--considerando todos os livros e todos os períodos disponíveis?
+SELECT nome_editora, SUM(quantidade_de_vendas) AS total_editoras_vendas 
+from livros
+JOIN editoras on editoras.id_editora = livros.id_editora
+JOIN vendas on vendas.id_livro = livros.id_livro
+GROUP by nome_editora
+ORDER by total_editoras_vendas DESC;
+
+---Qual autor apareceu em mais períodos diferentes no ranking?
+SELECT nome_autor, COUNT(*) as autor_mais_aparecido
+FROM vendas
+JOIN livros on livros.id_livro = vendas.id_livro
+JOIN autores on autores.id_autor = livros.id_autor
+GROUP by nome_autor 
+ORDER by autor_mais_aparecido DESC;
+
+-----Qual autor possui mais livros distintos publicados?
+SELECT nome_autor, COUNT(DISTINCT nome_livro) as total_livros
+from livros
+JOIN autores on autores.id_autor = livros.id_autor
+GROUP by nome_autor
+ORDER BY total_livros DESC;
+
+---Qual categoria possui mais livros publicados?
+SELECT nome_categoria, COUNT(*) as total_categoria 
+FROM livros
+JOIN categorias on categorias.id_categoria = livros.id_categoria
+GROUP BY nome_categoria
+ORDER BY total_categoria DESC;
+
+---Qual editora possui o maior número de autores diferentes publicados?
+SELECT nome_editora, COUNT(DISTINCT id_autor) AS autores_diferentes_publicados 
+from livros 
+JOIN editoras on editoras.id_editora = livros.id_editora
+GROUP by nome_editora
+ORDER by autores_diferentes_publicados DESC;
+
+----Quais autores venderam mais de 5.000 unidades no total?
+SELECT nome_autor, SUM(quantidade_de_vendas) as total_vendas
+FROM vendas
+JOIN livros on livros.id_livro = vendas.id_livro
+JOIN autores on autores.id_autor = livros.id_autor
+GROUP BY autores.id_autor, autores.nome_autor
+HAVING SUM(quantidade_de_vendas) > 5000
+ORDER BY total_vendas DESC;
