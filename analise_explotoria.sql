@@ -122,8 +122,9 @@ HAVING SUM(quantidade_de_vendas) >
   	FROM 
   	(
 		SELECT SUM(quantidade_de_vendas) AS total_autores
-      	FROM vendas 
-      	GROUP BY id_autor
+			FROM vendas
+			JOIN livros ON livros.id_livro = vendas.id_livro
+			GROUP BY livros.id_autor
     )
 
 );
@@ -138,7 +139,7 @@ SELECT
 	CASE 
     	WHEN posicao_ranking <= 10 THEN 'Top 10' 
         WHEN posicao_ranking <= 15 THEN 'Top 15' 
-        ELSE 'A baixo do Top 15' 
+        ELSE 'Abaixo do Top 15' 
     END, 
     SUM(quantidade_de_vendas) 
  FROM vendas
@@ -146,18 +147,18 @@ SELECT
  CASE 
     	WHEN posicao_ranking <= 10 THEN 'Top 10' 
         WHEN posicao_ranking <= 15 THEN 'Top 15' 
-        ELSE 'A baixo do Top 15' 
+        ELSE 'Abaixo do Top 15' 
     END;
         
 -- Eu tenho o case when, mas ele não está sendo aplicado em cada livro separadamente. Para aplicar separamente ficaria 
 -- Classifique cada livro de acordo com sua melhor posição alcançada no ranking:
 SELECT nome_livro,
-		CASE 
-    	WHEN posicao_ranking <= 10 THEN 'Top 10' 
-        WHEN posicao_ranking <= 15 THEN 'Top 15' 
-        ELSE 'A baixo do Top 15' 
-    END, 
-    SUM(quantidade_de_vendas) 
- FROM vendas
- JOIN livros on livros.id_livro = vendas.id_livro
- GROUP by nome_livro; 
+       MIN(posicao_ranking),
+       CASE
+           WHEN MIN(posicao_ranking) <= 10 THEN 'Top 10'
+           WHEN MIN(posicao_ranking) <= 15 THEN 'Top 15'
+           ELSE 'Abaixo do Top 15'
+       END
+FROM vendas
+JOIN livros ON livros.id_livro = vendas.id_livro
+GROUP BY nome_livro;
