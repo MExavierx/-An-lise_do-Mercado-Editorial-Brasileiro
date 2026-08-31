@@ -31,20 +31,39 @@ GROUP by nome_livro
 ORDER by media_vendas_livro DESC;
 
 --5.Quais livros apresentam vendas muito acima da média?
-SELECT nome_livro, AVG(quantidade_de_vendas) as media_vendas_livro
+SELECT nome_livro, SUM(quantidade_de_vendas) AS soma_livros
 FROM vendas
-JOIN livros on livros.id_livro = vendas.id_livro
-GROUP by nome_livro
-ORDER by media_vendas_livro DESC
-LIMIT 5;
+JOIN livros ON livros.id_livro = vendas.id_livro
+GROUP BY nome_livro
+HAVING SUM(quantidade_de_vendas) >
+(
+    SELECT AVG(total_livro)
+    FROM
+    (
+        SELECT SUM(quantidade_de_vendas) AS total_livro
+        FROM vendas
+        GROUP BY id_livro
+    )
+);
+
 
 --6.Livros que ocupam posições melhores no ranking vendem mais?
-SELECT nome_livro, SUM(quantidade_de_vendas) as top_vendem_mais 
-FROM vendas 
-join livros on livros.id_livro = vendas.id_livro
-WHERE posicao_ranking <= 10
-GROUP by nome_livro
-ORDER BY top_vendem_mais DESC; 
+SELECT
+    CASE
+        WHEN posicao_ranking <= 10 THEN 'Top 10'
+        WHEN posicao_ranking <= 20 THEN 'Top 20'
+        ELSE 'Abaixo do Top 20'
+    END,
+    SUM(quantidade_de_vendas)
+FROM vendas
+GROUP BY
+    CASE
+        WHEN posicao_ranking <= 10 THEN 'Top 10'
+        WHEN posicao_ranking <= 20 THEN 'Top 20'
+        ELSE 'Abaixo do Top 20'
+    END;
+    
+
 
 --7.Quais livros apresentaram maior crescimento ou queda nas vendas entre períodos?
   SELECT nome_livro, SUM(quantidade_de_vendas) as top_vendem_mais
@@ -86,3 +105,59 @@ join livros on livros.id_livro = vendas.id_livro
 WHERE posicao_ranking <= 10
 GROUP by nome_livro
 ORDER by total_livros DESC; 
+
+
+-- 11. Quais autores venderam mais livros do que a média de vendas por autor?
+-- 1. Total de vendas por autor 
+-- 2. Média de vendas por autor 
+-- 3. comparar a média de vendas com a média dos autores
+SELECT nome_autor, SUM(quantidade_de_vendas) as soma_autores 
+from vendas 
+join livros on livros.id_livro = vendas.id_livro
+join autores on autores.id_autor = livros.id_autor
+GROUP by nome_autor
+HAVING SUM(quantidade_de_vendas) > 
+(
+	SELECT AVG(total_autores)
+  	FROM 
+  	(
+		SELECT SUM(quantidade_de_vendas) AS total_autores
+      	FROM vendas 
+      	GROUP BY id_autor
+    )
+
+);
+
+
+/*Classifique cada livro de acordo com sua melhor posição alcançada no ranking:
+	1. posição 1 a 10 → "Top 10"
+	2. posição 11 a 15 → "Top 15"
+	3. posição 16 ou pior → "Abaixo do Top 15"*/
+    
+SELECT 
+	CASE 
+    	WHEN posicao_ranking <= 10 THEN 'Top 10' 
+        WHEN posicao_ranking <= 15 THEN 'Top 15' 
+        ELSE 'A baixo do Top 15' 
+    END, 
+    SUM(quantidade_de_vendas) 
+ FROM vendas
+ GROUP by 
+ CASE 
+    	WHEN posicao_ranking <= 10 THEN 'Top 10' 
+        WHEN posicao_ranking <= 15 THEN 'Top 15' 
+        ELSE 'A baixo do Top 15' 
+    END;
+        
+-- Eu tenho o case when, mas ele não está sendo aplicado em cada livro separadamente. Para aplicar separamente ficaria 
+-- Classifique cada livro de acordo com sua melhor posição alcançada no ranking:
+SELECT nome_livro,
+		CASE 
+    	WHEN posicao_ranking <= 10 THEN 'Top 10' 
+        WHEN posicao_ranking <= 15 THEN 'Top 15' 
+        ELSE 'A baixo do Top 15' 
+    END, 
+    SUM(quantidade_de_vendas) 
+ FROM vendas
+ JOIN livros on livros.id_livro = vendas.id_livro
+ GROUP by nome_livro; 
