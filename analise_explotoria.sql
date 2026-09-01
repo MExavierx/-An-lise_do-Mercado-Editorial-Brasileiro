@@ -30,6 +30,28 @@ JOIN livros on livros.id_livro = vendas.id_livro
 GROUP by nome_livro
 ORDER by media_vendas_livro DESC;
 
+-- Como o SQL não tem uma função de mediana nativa, vou fazer outro select 
+
+WITH OrderedData AS (
+    SELECT 
+        nome_livro,
+        quantidade_de_vendas,
+        ROW_NUMBER() OVER (
+            PARTITION BY nome_livro 
+            ORDER BY quantidade_de_vendas
+        ) AS numero_linha,
+        COUNT(*) OVER (
+            PARTITION BY nome_livro
+        ) AS total_periodos
+    FROM vendas
+    JOIN livros ON livros.id_livro = vendas.id_livro
+)
+SELECT nome_livro, quantidade_de_vendas AS mediana
+FROM OrderedData
+WHERE numero_linha = (total_periodos + 1) / 2;
+
+
+
 --5.Quais livros apresentam vendas muito acima da média?
 SELECT nome_livro, SUM(quantidade_de_vendas) AS soma_livros
 FROM vendas
@@ -66,19 +88,44 @@ GROUP BY
 
 
 --7.Quais livros apresentaram maior crescimento ou queda nas vendas entre períodos?
-  SELECT nome_livro, SUM(quantidade_de_vendas) as top_vendem_mais
-	from vendas 
-	join livros on livros.id_livro = vendas.id_livro
-	GROUP by nome_livro
-	ORDER by top_vendem_mais DESC
-   	LIMIT 5; 
+SELECT 
+    nome_livro,
 
- SELECT nome_livro, SUM(quantidade_de_vendas) AS top_vendem_menos
-	from vendas 
-	join livros on livros.id_livro = vendas.id_livro
-	GROUP by nome_livro
-	ORDER by top_vendem_menos ASC
-    LIMIT 5; 
+    SUM(
+        CASE
+            WHEN periodo_inicio = '2025-06-30'
+            THEN quantidade_de_vendas
+        END
+    ) AS primeiro_periodo,
+
+    SUM(
+        CASE
+            WHEN periodo_inicio = '2025-08-11'
+            THEN quantidade_de_vendas
+        END
+    ) AS ultimo_periodo,
+
+    SUM(
+        CASE
+            WHEN periodo_inicio = '2025-08-11'
+            THEN quantidade_de_vendas
+        END
+    )
+    -
+    SUM(
+        CASE
+            WHEN periodo_inicio = '2025-06-30'
+            THEN quantidade_de_vendas
+        END
+    ) AS diferenca_vendas
+
+FROM vendas
+JOIN livros ON livros.id_livro = vendas.id_livro
+
+GROUP BY nome_livro
+
+ORDER BY ABS(diferenca_vendas) DESC;
+
 
 
 --8.Quais autores possuem poucos livros, mas apresentam alto volume médio de vendas?
@@ -99,12 +146,15 @@ GROUP by nome_editora
 ORDER by editoras_mais_vendedoras DESC; 
 
 --10.Quanto das vendas totais está concentrado nos 10 livros mais vendidos?
-SELECT nome_livro, SUM(quantidade_de_vendas) as total_livros 
-from vendas 
-join livros on livros.id_livro = vendas.id_livro
-WHERE posicao_ranking <= 10
-GROUP by nome_livro
-ORDER by total_livros DESC; 
+SELECT 
+    SUM(
+        CASE
+            WHEN posicao_ranking <= 10
+            THEN quantidade_de_vendas
+            ELSE 0
+        END
+    ) * 100.0 / SUM(quantidade_de_vendas) AS percentual_vendas_top_10
+FROM vendas;
 
 
 -- 11. Quais autores venderam mais livros do que a média de vendas por autor?
